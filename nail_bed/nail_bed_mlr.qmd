@@ -6,15 +6,66 @@ format: pdf
 editor: visual
 bibliography: references.bib
 link-citations: true
+output:
+  pdf_document: default
 ---
 
 ## Background & Literature Review
 
 Anemia is as a life-threatening disease that affects 2 billion, or approximately 1 in 3 people world wide [@GTechdissertation].
 
-patients suffereing from chronic anemia require frequent monitoring of indicators such as the Hgb levels to track the progression of their disease. Despite this high prevalence, however, the current diagnosis process requires blood tests which causes discomfort and trauma in patients, in addition to incurring high monetary costs. Therefore, our research aims to create machine learning models that enable non-invasive inexpensive diagnosis using patients' nail bed images to predict their Hgb level which will prove particularly crucial for patients in underresourced communities, possibly using random forest algorithms and neural networks.
+Patients suffereing from chronic anemia require frequent monitoring of indicators such as the Hgb levels to track the progression of their disease. Despite this high prevalence, however, the current diagnosis process requires blood tests which causes discomfort and trauma in patients, in addition to incurring high monetary costs. Therefore, our research aims to create machine learning models that enable non-invasive inexpensive diagnosis using patients' nail bed images to predict their Hgb level which will prove particularly crucial for patients in underresourced communities, possibly using random forest algorithms and neural networks.
 
 To this end, we based our research on prior studies that focused on predicting Hgb levels on three regreions of interest: the fingernail beds, the conjunctiva and the palmar creases. With the Hgb estimation algorithm developed via a custom generated MATLAB function which correlated the 3 color RGB channels with the gold-standard measured Hgb levels, the predicted Hgb levels strongly correlate with Hgb levels determined by the clinical hemotology analyzer, with a correlation of determination of 0.995, indicating that this technique can be used to accurately measure a patient's hemoglobin level. We aim to extend the previous research from several perspectives: (1) The previous study did not find significant correlation between blue pixel intensity and gold standard measured Hgb, which we aim to investigate further using more complex machine learning algorithms such as random forests. (2) The study finds that machine learning techniques do not improve Hgb level measurement accuracy given the current sample size of the study population; we would like to refine the algorithm and test on a wider range of data as well as techniques such as neural networks and Bayesian regressions. (3) We aim to develop quality control algorithms accounting for other common irregularities in images of fingernails that could lead to inaccurate Hgb level estimation including presence of abnormal fingernail bed pigmentation, abnormal imaging brightness, and lack of image focus, using convolution of fingernail bed images with edge detection kernels to detect edges within the fingernail beds corresponding to abrupt color changes caused by abnormal fingernail bed pigmentation which results in improved prediction accuracy.
+
+## Data
+
+In the first part of our research, we used the TBND_V2 (Transient Biometrics Nails Dataset) on Kaggle [1], which contains unlabeled nail bed images. 
+
+In the second part of our research, our data are nail bed images collected from patients enrolled in Dr. Nirmish Shah’s clinic. Each patient has four images corresponding to different fingers. The images are processed such that the nail bed is captured in a bounding box while the background of the image is discarded. Colour information of each pixel is extracted from the bounded nail bed images as features. 
+
+We know that each pixel can be represented by RGB values, but the RGB colour space contains both colour information and the light information, which is different for each image since photos are taken at different times and settings. To eliminate the inconsistency caused by variation in lightning and background, we used three different colour spaces (HSV, LAB, RGC)  to separate the colour information from the lightning information. We computed the mean of each value/channel across the bounded nail bed image for each of these colour spaces and used them as our model input. 
+
+Our response variable is blood haemoglobin concentration associated with each nail bed. 
+
+Since the dataset is private information of the patients enrolled is Dr. Shah’ clinic, we would not include the details of the data in this analysis. 
+
+
+## Experiment on TBND_V2 Dataset
+
+We initially experimented with the TBND_V2 dataset found on Kaggle, since there is not enough data from the patients. Given that the data is unlabelled, we tried unsupervised clustering methods on the data, hoping to gain some insights on classification of nail bed images. 
+
+To get features, we used VGG16, a convolutional neural network (CNN) in our model. It extracts features from the input images, turning each image into feature vectors (4096 by 1). We removed the final (prediction) layer from the neural network manually, and the new output layer is a fully-connected layer with 4,096 individual nodes. We do this by specifying the “outputs” argument when initialising the model. We therefore get input of our model by using the neural net VGG16 as a feature extractor for the image data. 
+
+We then performed a principal component analysis (PCA) on the feature vectors to reduce the dimension of the feature space. For each of the 93 image samples, we now have a corresponding 1 by 4096 feature vector. This means that our model needs to process a 93 by 4096 matrix. To reduce the computational and complexity cost of processing high-dimensional data, we performed principal component analysis (PCA) on the matrix for dimension reduction. We set the parameter to 50 to obtain the top 50 principal components of the feature vector. The principal components are by default sorted in descending order. This means that the first principal component will be able to explain the most variability in the feature vector. It’s a linear combination of the feature variables, and its direction captures the most variability. Thus, PCA helps us to reduce the dimension of the features from 4096 to 50 while preserving as much information in the original data as possible. 
+
+After getting features, we used Kmean clustering, an unsupervised algorithm that is commonly used in exploratory data analysis, to perform the clustering.  The Kmean clustering works as follows: 
+Initialise the centre of each k cluster by shuffling the dataset and randomly selecting K data points without replacement. 
+Iterate the following steps until the assignment of data points to clusters is no longer changing: 
+Compute the sum of the Euclidean distance squared between data points and all centres. 
+Assign each data point to the closest cluster; each cluster is represented by its unique centre point.
+Compute the cluster’s centroid by taking the average of all data points assigned to that cluster. 
+
+In our model, we set the hyperparameter k to be 5 and clustered all samples into 5 categories. Based on the features we extracted, each cluster will contain images that are visually similar. 
+
+
+## PCA Results
+
+Based on the documentation, the explained_variance_ratio_ function returns the percentage of variability explained by each of the selected components. Running this function gives us the amount of variability that is explained by all the PCs (0.1015 is explained by the first PC, 0.0894 by the second, and 0.0781 by the third etc.)
+
+![PCA variance ratios](ratios.png)
+
+
+Then we generated a bar chart to represent the variability explained by different principal components, as well as the cumulative step plot to represent the variability explained by the first most important components.
+
+![PCA cumulative step plot](PCA.png)
+
+
+The neural net in the model functions as a feature extractor for the image data, which is the input of our model.  To be more specific, we used VGG16, a convolutional neural network (CNN) in our model. It extracts features from the input images, turning each image into feature vectors (4096 by 1). We removed the final (prediction) layer from the neural network manually, and the new output layer is a fully-connected layer with 4,096 individual nodes. We do this by specifying the “outputs” argument when initialising the model. 
+
+The PCA reduces dimensions of our feature vectors. For each of the 93 image samples, we now have a corresponding 1 by 4096 feature vector. This means that our model needs to process a 93 by 4096 matrix. To reduce the computational and complexity cost of processing high-dimensional data, we performed principal component analysis (PCA) on the matrix for dimension reduction. We set the parameter to 50 to obtain the top 50 principal components of the feature vector. The principal components are by default sorted in descending order. This means that the first principal component will be able to explain the most variability in the feature vector. It’s a linear combination of the feature variables, and its direction captures the most variability. Thus, PCA helps us to reduce the dimension of the features from 4096 to 50 while preserving as much information in the original data as possible. 
+
+In our model, we set the hyperparameter k to be 5 and clustered all samples into 5 categories. Based on the features we extracted, each cluster will contain images that are visually similar. 
 
 ## Function
 
@@ -171,3 +222,8 @@ model_tibble <- tibble(RMSE_train=rmse_train$.estimate, RMSE_test=rmse_test$.est
 model_tibble |>
         kable()
 ```
+
+References: 
+https://www.kaggle.com/datasets/vicolab/tbnd-v2
+https://smartech.gatech.edu/bitstream/handle/1853/61131/MANNINO-DISSERTATION-2018.pdf 
+
