@@ -4,13 +4,17 @@ subtitle: "Nail Bed Images"
 date: "Nov 14, 2022"
 format: pdf
 editor: visual
+bibliography: references.bib
+link-citations: true
 ---
 
 ## Background & Literature Review
 
-With anemeia as a life-threatening diseas that affects 2 billion, or approximately 1 in 3 people world wide, patients suffereing from chronic anemia require frequent monitoring of indicators such as the Hgb levels to track the progression of their disease. Despite this high prevalence, however, the current diagnosis process requires blood tests which causes discomfort and trauma in patients, in addition to incurring high monetary costs. Therefore, our research aims to create machine learning models that enable non-invasive inexpensive diagnosis using patients' nail bed images to predict their Hgb level which will prove particularly crucial for patients in underresourced communities, possibly using random forest algorithms and neural networks.
+Anemia is as a life-threatening disease that affects 2 billion, or approximately 1 in 3 people world wide [@GTechdissertation].
 
-To this end, we based our research on prior studies that focused on predicting Hgb levels on three regreions of interest: the fingernail beds, the conjunctiva and the palmar creases. With the Hgb estimation algorithm developed via a custom generated MATLAB function which correlated the 3 color RGB channels with the gold-standard measured Hgb levels, the predicted Hgb levels strongly correlate with Hgb levels determined by the clinical hemotology analyzer, with a correlation of determination of 0.995, indicating that this technique can be used to accurately measure a patient's hemoglobin level. We aim to extend the previous research from several perspectives: (1) The previous study did not find significant correlation between blue pixel intensity and gold standard measured Hgb, which we aim to investigate further using more complex machine learning algorithms such as random forests. (2) The study finds that machine learning techniques do not improve Hgb level measurement accuracy given the current sample size of the study population; we would like to refine the algorithm and test on a wider range of data as well as techniques such as neural networks and Bayesian regressions.  (3) We aim to develop quality control algorithms accounting for other common irregularities in images of fingernails that could lead to inaccurate Hgb level estimation including presence of abnormal fingernail bed pigmentation, abnormal imaging brightness, and lack of image focus, using convolution of fingernail bed images with edge detection kernels to detect edges within the fingernail beds corresponding to abrupt color changes caused by abnormal fingernail bed pigmentation which results in improved prediction accuracy.
+patients suffereing from chronic anemia require frequent monitoring of indicators such as the Hgb levels to track the progression of their disease. Despite this high prevalence, however, the current diagnosis process requires blood tests which causes discomfort and trauma in patients, in addition to incurring high monetary costs. Therefore, our research aims to create machine learning models that enable non-invasive inexpensive diagnosis using patients' nail bed images to predict their Hgb level which will prove particularly crucial for patients in underresourced communities, possibly using random forest algorithms and neural networks.
+
+To this end, we based our research on prior studies that focused on predicting Hgb levels on three regreions of interest: the fingernail beds, the conjunctiva and the palmar creases. With the Hgb estimation algorithm developed via a custom generated MATLAB function which correlated the 3 color RGB channels with the gold-standard measured Hgb levels, the predicted Hgb levels strongly correlate with Hgb levels determined by the clinical hemotology analyzer, with a correlation of determination of 0.995, indicating that this technique can be used to accurately measure a patient's hemoglobin level. We aim to extend the previous research from several perspectives: (1) The previous study did not find significant correlation between blue pixel intensity and gold standard measured Hgb, which we aim to investigate further using more complex machine learning algorithms such as random forests. (2) The study finds that machine learning techniques do not improve Hgb level measurement accuracy given the current sample size of the study population; we would like to refine the algorithm and test on a wider range of data as well as techniques such as neural networks and Bayesian regressions. (3) We aim to develop quality control algorithms accounting for other common irregularities in images of fingernails that could lead to inaccurate Hgb level estimation including presence of abnormal fingernail bed pigmentation, abnormal imaging brightness, and lack of image focus, using convolution of fingernail bed images with edge detection kernels to detect edges within the fingernail beds corresponding to abrupt color changes caused by abnormal fingernail bed pigmentation which results in improved prediction accuracy.
 
 ## Function
 
@@ -24,7 +28,7 @@ calc_model_stats <- function(x) {
 
 ## Packages
 
-```{r}
+```{r, warning=F, message=F}
 #| label: load-pkgs
 #| message: false
  
@@ -39,7 +43,7 @@ library(knitr)
 #| label: load-data
 #| message: false
 
-nail_data <- read_csv("data/nail_data.csv") |> 
+nail_data <- read_csv("nail_data.csv") |> 
   rename(concentration = `Concentration (g/dL)`)
 
 glimpse(nail_data)
