@@ -201,7 +201,7 @@ We found that out of all the predictors, `Mean_S` tends to associates most signi
 
 ### Data
 
-In the first part of our research, we used the TBND_V2 (Transient Biometrics Nails Dataset) on Kaggle \[1\], which contains unlabeled nail bed images [@misc].
+In the first part of our research, we used the TBND_V2 (Transient Biometrics Nails Dataset) on Kaggle \[1\], which contains unlabeled nail bed images [@kaggle].
 
 ### Experiment on TBND_V2 Dataset
 
@@ -238,5 +238,3 @@ In this study, we explored primarily two methods in predicting hemoglobin concen
 
 
 ### References
-
-https://www.kaggle.com/datasets/vicolab/tbnd-v2
