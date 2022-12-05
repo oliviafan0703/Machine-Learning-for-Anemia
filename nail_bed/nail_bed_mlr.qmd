@@ -10,15 +10,17 @@ output:
   pdf_document: default
 ---
 
-## Background & Literature Review
+## 1. Background & Literature Review
 
 Anemia is as a life-threatening disease that affects 2 billion, or approximately 1 in 3 people world wide [@GTechdissertation].
 
-Patients suffereing from chronic anemia require frequent monitoring of indicators such as the Hgb levels to track the progression of their disease. Despite this high prevalence, however, the current diagnosis process requires blood tests which causes discomfort and trauma in patients, in addition to incurring high monetary costs. Therefore, our research aims to create machine learning models that enable non-invasive inexpensive diagnosis using patients' nail bed images to predict their Hgb level which will prove particularly crucial for patients in underresourced communities, possibly using random forest algorithms and neural networks.
+Patients suffering from chronic anemia require frequent monitoring of indicators such as the Hgb levels to track the progression of their disease. Despite this high prevalence, however, the current diagnosis process requires blood tests which causes discomfort and trauma in patients, in addition to incurring high monetary costs. Therefore, our research aims to create machine learning models that enable non-invasive inexpensive diagnosis using patients' nail bed images to predict their Hgb level which will prove particularly crucial for patients in underresourced communities, possibly using random forest algorithms and neural networks.
 
-To this end, we based our research on prior studies that focused on predicting Hgb levels on three regreions of interest: the fingernail beds, the conjunctiva and the palmar creases. With the Hgb estimation algorithm developed via a custom generated MATLAB function which correlated the 3 color RGB channels with the gold-standard measured Hgb levels, the predicted Hgb levels strongly correlate with Hgb levels determined by the clinical hemotology analyzer, with a correlation of determination of 0.995, indicating that this technique can be used to accurately measure a patient's hemoglobin level. We aim to extend the previous research from several perspectives: (1) The previous study did not find significant correlation between blue pixel intensity and gold standard measured Hgb, which we aim to investigate further using more complex machine learning algorithms such as random forests. (2) The study finds that machine learning techniques do not improve Hgb level measurement accuracy given the current sample size of the study population; we would like to refine the algorithm and test on a wider range of data as well as techniques such as neural networks and Bayesian regressions. (3) We aim to develop quality control algorithms accounting for other common irregularities in images of fingernails that could lead to inaccurate Hgb level estimation including presence of abnormal fingernail bed pigmentation, abnormal imaging brightness, and lack of image focus, using convolution of fingernail bed images with edge detection kernels to detect edges within the fingernail beds corresponding to abrupt color changes caused by abnormal fingernail bed pigmentation which results in improved prediction accuracy.
+To this end, we based our research on prior studies that focused on predicting Hgb levels on three regreions of interest: the fingernail beds, the conjunctiva and the palmar creases. With the Hgb estimation algorithm developed via a custom generated MATLAB function which correlated the 3 color RGB channels with the gold-standard measured Hgb levels, the predicted Hgb levels strongly correlate with Hgb levels determined by the clinical hemotology analyzer, with a correlation of determination of 0.995, indicating that this technique can be used to accurately measure a patient's hemoglobin level. We aim to extend the previous research from several perspectives: (1) The previous study found no significant correlation between blue pixel intensity and gold standard measured Hgb, which we aim to investigate further using more complex machine learning algorithms such as random forests. (2) The study finds that machine learning techniques do not improve Hgb level measurement accuracy given the current sample size of the study population; we would like to refine the algorithm and test on a wider range of data as well as techniques such as neural networks and Bayesian regressions. (3) We aim to develop quality control algorithms accounting for other common irregularities in images of fingernails that could lead to inaccurate Hgb level estimation including presence of abnormal fingernail bed pigmentation, abnormal imaging brightness, and lack of image focus, using convolution of fingernail bed images with edge detection kernels to detect edges within the fingernail beds corresponding to abrupt color changes caused by abnormal fingernail bed pigmentation which results in improved prediction accuracy.
 
-## Example 1
+## 2. Methodology
+
+## 2.1 Multilinear Regression
 
 ### Data
 
@@ -26,7 +28,7 @@ Our data are nail bed images collected from patients enrolled in Dr. Nirmish Sha
 
 We know that each pixel can be represented by RGB values, but the RGB colour space contains both colour information and the light information, which is different for each image since photos are taken at different times and settings. To eliminate the inconsistency caused by variation in lightning and background, we used two other colour spaces (HSV, LAB) to separate the colour information from the lightning information. We computed the mean of each value/channel across the bounded nail bed image for each of these three colour spaces (HSV, LAB, RGB) and used them as our model input.
 
-Our response variable is blood haemoglobin concentration associated with each nail bed.
+Our response variable is blood hemoglobin concentration associated with each nail bed.
 
 Our predictor variables are:
 
@@ -146,7 +148,9 @@ nail_fit_rs <- nail_wflow |>
 ```{r, echo=F}
 #| label: cv-summarize
 
-collect_metrics(nail_fit_rs, summarize = FALSE) # summarize = FALSE to see individualized output; when comparing two models, set summarize = TRUE
+collect_metrics(nail_fit_rs, summarize = FALSE) |> 
+  kable(digits=3)
+# summarize = FALSE to see individualized output; when comparing two models, set summarize = TRUE
 ```
 
 ## Summarize model fit CV metrics
@@ -156,7 +160,8 @@ collect_metrics(nail_fit_rs, summarize = FALSE) # summarize = FALSE to see indiv
 map_df(nail_fit_rs$.extracts, ~ .x[[1]][[1]]) |> #model stats are in .extracts column 
   summarise(mean_adj_rsq = mean(adj.r.squared), # avg_stats computed over 10 folds 
             mean_aic = mean(AIC), 
-            mean_bic = mean(BIC))
+            mean_bic = mean(BIC))|> 
+  kable(digits=3)
 ```
 
 ```{r model, echo=F}
@@ -186,7 +191,15 @@ model_tibble |>
 
 ## Discussion of Model Output
 
-## Example 2
+We have derived the following linear model:
+
+\begin{align}\hat Hgb & = 1356.390+0.004 \times Mean\_H+31.719 \times Mean\_S \\& +16.880 \times Mean\_V -0.126 \times Mean\_L-0.435 \times Mean\_A \\& -0.257 \times Mean\_B-1306.425 \times Mean\_Prop\_R \\& -1435.883 \times Mean\_Prop\_G-1319.198 \times Mean\_Prop\_B \end{align}
+
+We notice that while variables `Mean_L`, `Mean_A`, `Mean_B`, `Mean_Prop_R`, `Mean_Prop_G`, and `Mean_Prop_B` are negatively associated with the response variable `Hgb` concentration, `Mean_H`, `Mean_S` and `Mean_V` are positively associated with the response variable. This means as mean value of hue, or mean value of saturation, or mean value of brightness of HSV color space increases, the hemoglobin concentration level also tends to increase. On the other hand, as the mean value of brightness, redness, greenness or blueness of RGB color space increases, the hemoglobin concentration level tends to decrease.
+
+We found that out of all the predictors, `Mean_S` tends to associates most significantly with the response variable with the smallest p value. For each 1 unit increase in the mean value of saturation, Hgb concentration is expected to increase by 31.719 on average, keeping all else constant. The second most signficant predictor is `Mean_A`, by which we found that for each 1 unit increase in the mean value of representation of greenness to redness, Hgb concentration is expected to decrease by 0.435 on average, keeping all else constant. 
+
+## 2.2 Principle Components Analysis (PCA)
 
 ### Data
 
@@ -220,4 +233,12 @@ The PCA reduces dimensions of our feature vectors. For each of the 93 image samp
 
 In our model, we set the hyperparameter k to be 5 and clustered all samples into 5 categories. Based on the features we extracted, each cluster will contain images that are visually similar.
 
-References: https://www.kaggle.com/datasets/vicolab/tbnd-v2 https://smartech.gatech.edu/bitstream/handle/1853/61131/MANNINO-DISSERTATION-2018.pdf
+
+### 3. Conclusion
+
+In this study, we explored primarily two methods in predicting hemoglobin concentration level based on parameters derived from patients' nail beds images: (1) multilinear regression, (2) principle components analysis. While the first model provides reasonable train and and test error, the p value of the predictors seems to be large. Our second model yields a reasonable explained variance ratio with respect to the scale of principle components. Limitations of our work includes that the data from the clinic lacks the label, therefore we are unable to use classification methods such as random forest or SVM. Our future work includes fitting Bayesian regressions on the data, exploring more machine learning methods such as random forest or support vector machines, and using shrinkage methods such as ridge regression and LASSO.
+
+
+### References
+
+https://www.kaggle.com/datasets/vicolab/tbnd-v2
