@@ -12,10 +12,9 @@ output:
 
 ## 1. Introduction
 
-Anemia is as a life-threatening disease that affects 2 billion, or approximately 1 in 3 people world wide [@GTechdissertation]. In 2019, this long lasting disease accounted for 50.3 million YLD (years lived with disabilities) [@monetary]. Patients suffering from chronic anemia require frequent monitoring of indicators such as the Hgb concentration in blood to track the progression of their disease. Despite high prevalence, however, the current diagnostic process requires blood tests which causes discomfort and trauma in patients, in addition to incurring high monetary cost, especially in regions of lower socio-economic development [@monetary]. According to studies in cost-effectiveness of anemia screening, total costs per life saved in targeted screening amounted to \$3575, while treating anemia can cost between \$18 and $500 per month depending on the type of anemia and necessary treatment [@cost].
-Therefore, we aim to create machine learning models that enable non-invasive inexpensive diagnosis using patients' nail bed images to predict their Hgb concentration.
+Anemia is as a life-threatening disease that affects 2 billion, or approximately 1 in 3 people world wide [@GTechdissertation]. In 2019, this long lasting disease accounted for 50.3 million YLD (years lived with disabilities) [@monetary]. Patients suffering from chronic anemia require frequent monitoring of indicators such as the Hgb concentration in blood to track the progression of their disease. Despite high prevalence, however, the current diagnostic process requires blood tests which causes discomfort and trauma in patients, in addition to incurring high monetary cost, especially in regions of lower socio-economic development [@monetary]. According to studies in cost-effectiveness of anemia screening, total costs per life saved in targeted screening amounted to \$3575, while treating anemia can cost between \$18 and \$500 per month depending on the type of anemia and necessary treatment [@cost]. Therefore, we aim to create machine learning models that enable non-invasive inexpensive diagnosis using patients' nail bed images to predict their Hgb concentration.
 
-Previous work focuses on predicting Hgb concentration on three regressions of interest: the fingernail beds, the conjunctiva and the palmar creases. We aim to extend the previous research by developing a multilinear LASSO regression model, using features extracted from the nail bed images as predictors and cross validation for hyperparameter tuning. We also compared our results with previous work to examine the correlation between the features and the hemoglobin concentration levels. 
+Previous work focuses on predicting Hgb concentration on three regressions of interest: the fingernail beds, the conjunctiva and the palmar creases. We aim to extend the previous research by developing a multilinear LASSO regression model, using features extracted from the nail bed images as predictors and cross validation for hyperparameter tuning. We also compared our results with previous work to examine the correlation between the features and the hemoglobin concentration levels.
 
 ## 2. Methodology: LASSO Multilinear Model
 
@@ -26,7 +25,7 @@ We examine 72 of the images collected from patients enrolled in Dr. Nirmish Shah
 We know that each pixel can be represented by RGB values, but the RGB colour space contains both colour information and the light information, which is different for each image since photos are taken at different times and settings. To eliminate the inconsistency caused by variation in lightning and background, we used two other colour spaces (HSV, LAB) to separate the colour information from the lightning information. We computed the mean of each value/channel across the bounded nail bed image for each of these three colour spaces (HSV, LAB, RGB) and used them as our model input. Our response variable is blood hemoglobin concentration associated with each nail bed in g/dL. Our predictor variables include:
 
 | Variable Name            | Description                                                                                                                               |
-|-----------------|-------------------------------------------------------|
+|------------------|------------------------------------------------------|
 | Mean value of Hue        | Average value of Hue component (the color component / base pigment) of the Hue-Saturation-Value color space                               |
 | Mean value of Saturation | Average value of Saturation component (amount of color / depth of the pigment / dominance of hue) of the Hue-Saturation-Value color space |
 | Mean value of Value      | Average value of Value component (brightness of the color) of the Hue-Saturation-Value color space                                        |
@@ -79,7 +78,7 @@ Figure 1 and the corresponding summary statistics show that the Hemoglobin conce
 
 ### Cross Validation for Hyperparameter Tuning
 
-In order to perform variable selection to gauge insight into the predictors which have significantly associations with hemoglobin concentrations, we use the LASSO which uses $L_1$ norm penalty, shrinking the coefficient estimates of insignificant predictors towards zero. 
+In order to perform variable selection to gauge insight into the predictors which have significantly associations with hemoglobin concentrations, we use the LASSO which uses $L_1$ norm penalty, shrinking the coefficient estimates of insignificant predictors towards zero.
 
 We use cross validation to tune the hyperparamter $\lambda$ and visualize the shrinkage of the coefficients:
 
@@ -112,7 +111,7 @@ df<-as.data.frame(as.matrix(coef(lasso.model)))
 df%>%filter(s0!=0)%>%kable(digits=4)
 ```
 
-As a result, we derive a sparse model which only involves a subset of the features extracted from the nailbed images. 
+As a result, we derive a sparse model which only involves a subset of the features extracted from the nailbed images.
 
 ## Predictions
 
@@ -135,11 +134,9 @@ We find that out of all the predictors, `Mean_S` tends to associates most signif
 
 ## 3. Conclusion
 
-In this study, we explored how multilinear regression can be used to predict hemoglobin concentration level based on features derived from patients' nail beds images. While the LASSO model provides reasonable train and and test error, the p value of the predictors seems to be large.
+In this study, we explored how multilinear regression can be used to predict hemoglobin concentration level based on features derived from patients' nail beds images. The LASSO model selects 4 predictors (mean value of Hue, mean value of Saturation, mean value of Lightness, and mean value of representation for greenness) among the 9 predictors. Previous research have found that representation of blueness in RGB color space is not a significant predictor [@GTechdissertation] for blood hemoglobin levels. This notion is consistent with our result that mean value of representation of blueness is included in the final model. Among the 4 predictors chosen by LASSO model, mean value of Saturation has the strongest positive relationship with the response, and mean value of representation for greenness has a negative relationship with the response. In the future, we would like to explore more on these two predictors.
 
-Our second model yields a reasonable explained variance ratio with respect to the scale of principle components. Limitations of our work includes that the data from the clinic lacks the label, therefore we are unable to use classification methods such as random forest or SVM. Our future work includes fitting Bayesian regressions on the data, exploring more machine learning methods such as random forest or support vector machines, and using shrinkage methods such as ridge regression and LASSO.
-
-In the future, we would like to compare the utility of adding features such as those extracted by a convolutional neural network (CNN). To begin a comparison, we ask: - How much variability is explained by the principal components of CNN feature set? It would be interesting to compare these principal components to the principal components of the features outlined in section 2.1 but will required additional data processing. See appendix for a detailed description of our preliminary exploration.
+Limitations of our work includes that the data from the clinic lacks the label, therefore we are unable to use classification methods such as random forest or SVM. Our future work includes fitting Bayesian regressions on the data, exploring more machine learning methods such as random forest or support vector machines, and using other shrinkage methods such as ridge regression. We would also like to compare the utility of adding features such as those extracted by a convolutional neural network (CNN). To begin a comparison, we ask: - How much variability is explained by the principal components of CNN feature set? It would be interesting to compare these principal components to the principal components of the features outlined in section 2.1 but will required additional data processing. See appendix for a detailed description of our preliminary exploration.
 
 ## Appendix
 
@@ -154,7 +151,7 @@ We then perform a principal component analysis (PCA) on the feature vectors to r
 Based on the documentation, the explained_variance_ratio\_ function returns the percentage of variability explained by each of the selected components. Running this function gives us the amount of variability that is explained by all the PCs (0.1015 is explained by the first PC, 0.0894 by the second, and 0.0781 by the third etc.) The table below shows the top 10 principal components:
 
 | PC1     | PC2     | PC3     | PC4     | PC5     | PC6     | PC7     | PC8     | PC9     | PC10    |
-|---------|---------|---------|---------|---------|---------|---------|---------|---------|---------|
+|--------|--------|--------|--------|--------|--------|--------|--------|--------|--------|
 | 0.10152 | 0.08947 | 0.07806 | 0.06449 | 0.05609 | 0.04782 | 0.04122 | 0.03169 | 0.03162 | 0.02549 |
 
 We report a bar chart to represent the variability explained by different principal components, as well as the cumulative step plot to represent the variability explained by the first most important components.
