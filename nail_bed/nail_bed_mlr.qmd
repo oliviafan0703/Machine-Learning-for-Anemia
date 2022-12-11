@@ -108,7 +108,7 @@ bestlam
 
 lasso.model <- glmnet(x, y, alpha = 1,lambda = bestlam)
 df<-as.data.frame(as.matrix(coef(lasso.model)))
-df%>%filter(s0!=0)%>%kable(digits=4)
+df%>%filter(s0!=0)%>%rename("coefficient"=s0)%>%kable(digits=4)
 ```
 
 As a result, we derive a sparse model which only involves a subset of the features extracted from the nailbed images. 
@@ -128,9 +128,9 @@ We have derived the following linear model:
 
 $$\hat Hgb = 15.4670+0.0045 \times Mean\_H+11.6495 \times Mean\_S +0.0124 \times Mean\_L-30.2895 \times Mean\_Prop\_G$$
 
-We notice that while variables `Mean_L`, `Mean_A`, `Mean_B`, `Mean_Prop_R`, `Mean_Prop_G`, and `Mean_Prop_B` are negatively associated with the response variable `Hgb` concentration, `Mean_H`, `Mean_S` and `Mean_V` are positively associated with the response variable. This means as mean value of hue, or mean value of saturation, or mean value of brightness of HSV color space increases, the hemoglobin concentration level also tends to increase. On the other hand, as the mean value of brightness, redness, greenness or blueness of RGB color space increases, the hemoglobin concentration level tends to decrease.
+We notice that while variables `Mean_H`, `Mean_S` and `Mean_L` are positively associated with the response variable `Hgb` concentration, `Mean\_Prop\_G` is negatively associated with the response variable. This means as mean value of hue, mean value of saturation, or mean value of value (brightness of the color) of HSV color space increases, the hemoglobin concentration level also tends to increase. On the other hand, as the mean value of greenness of RGB color space increases, the hemoglobin concentration level tends to decrease.
 
-We find that out of all the predictors, `Mean_S` tends to associates most significantly with the response variable with the smallest p value. For each 1 unit increase in the mean value of saturation, Hgb concentration is expected to increase by 31.719 on average, keeping all else constant. The second most significant predictor is `Mean_A`, by which we found that for each 1 unit increase in the mean value of representation of greenness to redness, Hgb concentration is expected to decrease by 0.435 on average, keeping all else constant.
+We find that out of all the predictors, `Mean\_Prop\_G` tends to associates most significantly with the response variable with the coefficient with the largest absolute magnitude. For each 1 unit increase in the mean value of greenness of RGB color space, Hgb concentration is expected to decrease by 30.2895 on average, keeping all else constant. 
 
 ## 2.2 Principle Components Analysis (PCA)
 
