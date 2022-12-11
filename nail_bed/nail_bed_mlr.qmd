@@ -22,41 +22,23 @@ Previous work focuses on predicting Hgb concentration on three regressions of in
 
 ### Data
 
-Our data are nail bed images collected from patients enrolled in Dr. Nirmish Shah's clinic. Each patient has four images corresponding to different fingers. The images are processed such that the nail bed is captured in a bounding box while the background of the image is discarded. Colour information of each pixel is extracted from the bounded nail bed images as features.
+We examined nail bed images collected from patients enrolled in Dr. Nirmish Shah's clinic. Each patient has four images corresponding to different fingers. In total, our data contains 72 images from 18 patients. The images are processed such that the nail bed is captured in a bounding box while the background of the image is discarded. Colour information of each pixel is extracted from the bounded nail bed images as features.
 
-We know that each pixel can be represented by RGB values, but the RGB colour space contains both colour information and the light information, which is different for each image since photos are taken at different times and settings. To eliminate the inconsistency caused by variation in lightning and background, we used two other colour spaces (HSV, LAB) to separate the colour information from the lightning information. We computed the mean of each value/channel across the bounded nail bed image for each of these three colour spaces (HSV, LAB, RGB) and used them as our model input.
+We know that each pixel can be represented by RGB values, but the RGB colour space contains both colour information and the light information, which is different for each image since photos are taken at different times and settings. To eliminate the inconsistency caused by variation in lightning and background, we used two other colour spaces (HSV, LAB) to separate the colour information from the lightning information. We computed the mean of each value/channel across the bounded nail bed image for each of these three colour spaces (HSV, LAB, RGB) and used them as our model input. Our response variable is blood hemoglobin concentration associated with each nail bed in g/dL. Our predictor variables include:
 
-Our response variable is blood hemoglobin concentration associated with each nail bed.
+| Variable Name            | Description                                                                                                                               |
+|---------------|---------------------------------------------------------|
+| Mean value of Hue        | Average value of Hue component (the color component / base pigment) of the Hue-Saturation-Value color space                               |
+| Mean value of Saturation | Average value of Saturation component (amount of color / depth of the pigment / dominance of hue) of the Hue-Saturation-Value color space |
+| Mean value of Value      | Average value of Value component (brightness of the color) of the Hue-Saturation-Value color space                                        |
+| Mean value of Lightness  | Average value of Lightness component from black to white on a scale of 0 - 100 of the LAB color space                                     |
+| Mean Value of A          | Average value of representation of greenness to redness on a scale of -128 to +127 of LAB color space                                     |
+| Mean Value of B          | Average value of representation of blueness to yellowness on a scale of -128 to +127 of LAB color space                                   |
+| Mean Value of R          | Average value of redness of Red-Green-Blue color space                                                                                    |
+| Mean Value of G          | Average value of greenness of Red-Green-Blue color space                                                                                  |
+| Mean Value of B          | Average value of blueness of Red-Green-Blue color space                                                                                   |
 
-Our predictor variables are:
-
--   mean_H: mean value of hue (the color component / base pigment) of HSV color space.
-
--   mean_S: mean value of saturation (amount of color / depth of the pigment / dominance of hue) of HSV color space.
-
--   mean_V: mean value of value (brightness of the color) of HSV color space.
-
--   mean_L: mean value of lightness from black to white on a scale of 0 - 100 of LAB color space.
-
--   mean_A: mean value of representation of greenness to redness on a scale of -128 to +127 of LAB color space.
-
--   mean_B: mean value of representation of blueness to yellowness on a scale of -128 to +127 of LAB color space.
-
--   mean_Prop_R: mean value of redness of RGB color space.
-
--   mean_Prop_G: mean value of greenness of RGB color space.
-
--   mean_Prop_B: mean value of blueness of RGB color space.
-
-Since the dataset is private information of the patients enrolled is Dr. Shah' clinic, we would not include the details of the data in this analysis.
-
-```{r, echo=FALSE}
-# function to calculate model fit statistics
-calc_model_stats <- function(x) {
-  glance(extract_fit_parsnip(x)) |>
-    select(adj.r.squared, AIC, BIC)
-}
-```
+: Since the dataset is private information of the patients enrolled is Dr. Shah' clinic, we would not include the details of the data in this analysis. We provide a glimpse of the data below.
 
 ```{r, warning=F, message=F, echo=F}
 #| label: load-pkgs
@@ -67,8 +49,6 @@ library(tidymodels)
 library(knitr)
 ```
 
-## Glimpse of Data
-
 ```{r, echo=F}
 #| label: load-data
 #| message: false
@@ -77,6 +57,15 @@ nail_data <- read_csv("nail_data.csv") |>
   rename(concentration = `Concentration (g/dL)`)
 
 glimpse(nail_data)
+```
+
+```{r EDA, fig.cap='Distribution of response variable'}
+
+ggplot(nail_data, aes(x=concentration)) + 
+  geom_histogram(bins=20) + 
+  labs(x = 'Concentration of Hemoglobin in g/dL', 
+       y = 'Count', 
+       title = 'Distribution of hemoglobin concentration')
 ```
 
 ```{r, echo=F}
@@ -191,11 +180,12 @@ model_tibble |>
 
 We have derived the following linear model:
 
+```{=tex}
 \begin{align}\hat Hgb & = 1356.390+0.004 \times Mean\_H+31.719 \times Mean\_S \\& +16.880 \times Mean\_V -0.126 \times Mean\_L-0.435 \times Mean\_A \\& -0.257 \times Mean\_B-1306.425 \times Mean\_Prop\_R \\& -1435.883 \times Mean\_Prop\_G-1319.198 \times Mean\_Prop\_B \end{align}
-
+```
 We notice that while variables `Mean_L`, `Mean_A`, `Mean_B`, `Mean_Prop_R`, `Mean_Prop_G`, and `Mean_Prop_B` are negatively associated with the response variable `Hgb` concentration, `Mean_H`, `Mean_S` and `Mean_V` are positively associated with the response variable. This means as mean value of hue, or mean value of saturation, or mean value of brightness of HSV color space increases, the hemoglobin concentration level also tends to increase. On the other hand, as the mean value of brightness, redness, greenness or blueness of RGB color space increases, the hemoglobin concentration level tends to decrease.
 
-We found that out of all the predictors, `Mean_S` tends to associates most significantly with the response variable with the smallest p value. For each 1 unit increase in the mean value of saturation, Hgb concentration is expected to increase by 31.719 on average, keeping all else constant. The second most signficant predictor is `Mean_A`, by which we found that for each 1 unit increase in the mean value of representation of greenness to redness, Hgb concentration is expected to decrease by 0.435 on average, keeping all else constant. 
+We found that out of all the predictors, `Mean_S` tends to associates most significantly with the response variable with the smallest p value. For each 1 unit increase in the mean value of saturation, Hgb concentration is expected to increase by 31.719 on average, keeping all else constant. The second most signficant predictor is `Mean_A`, by which we found that for each 1 unit increase in the mean value of representation of greenness to redness, Hgb concentration is expected to decrease by 0.435 on average, keeping all else constant.
 
 ## 2.2 Principle Components Analysis (PCA)
 
@@ -231,10 +221,10 @@ The PCA reduces dimensions of our feature vectors. For each of the 93 image samp
 
 In our model, we set the hyperparameter k to be 5 and clustered all samples into 5 categories. Based on the features we extracted, each cluster will contain images that are visually similar.
 
-
 ### 3. Conclusion
 
 In this study, we explored primarily two methods in predicting hemoglobin concentration level based on parameters derived from patients' nail beds images: (1) multilinear regression, (2) principle components analysis. While the first model provides reasonable train and and test error, the p value of the predictors seems to be large. Our second model yields a reasonable explained variance ratio with respect to the scale of principle components. Limitations of our work includes that the data from the clinic lacks the label, therefore we are unable to use classification methods such as random forest or SVM. Our future work includes fitting Bayesian regressions on the data, exploring more machine learning methods such as random forest or support vector machines, and using shrinkage methods such as ridge regression and LASSO.
 
+## Appendix
 
 ### References
