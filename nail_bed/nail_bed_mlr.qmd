@@ -22,7 +22,7 @@ Previous work focuses on predicting Hgb concentration on three regressions of in
 
 ### Data
 
-Our data are nail bed images collected from patients enrolled in Dr. Nirmish Shah's clinic. Each patient has four images corresponding to different fingers. The images are processed such that the nail bed is captured in a bounding box while the background of the image is discarded. Colour information of each pixel is extracted from the bounded nail bed images as features.
+We examine 72 of the images collected from patients enrolled in Dr. Nirmish Shah's clinic. Each patient has four images corresponding to different fingers. The images are processed such that the nail bed is captured in a bounding box while the background of the image is discarded. Colour information of each pixel is extracted from the bounded nail bed images as features.
 
 We know that each pixel can be represented by RGB values, but the RGB colour space contains both colour information and the light information, which is different for each image since photos are taken at different times and settings. To eliminate the inconsistency caused by variation in lightning and background, we used two other colour spaces (HSV, LAB) to separate the colour information from the lightning information. We computed the mean of each value/channel across the bounded nail bed image for each of these three colour spaces (HSV, LAB, RGB) and used them as our model input.
 
@@ -65,6 +65,7 @@ calc_model_stats <- function(x) {
 library(tidyverse)
 library(tidymodels)
 library(knitr)
+library(glmnet)
 ```
 
 ## Glimpse of Data
@@ -79,112 +80,46 @@ nail_data <- read_csv("nail_data.csv") |>
 glimpse(nail_data)
 ```
 
+
+## LASSO Model
+
+### Cross Validation for Hyperparameter Tuning
+
 ```{r, echo=F}
 #| label: initial-split
-
 set.seed(123)
-nail_split <- initial_split(nail_data)
-nail_train <- training(nail_split)
-nail_test <- testing(nail_split)
+nail_lasso<-nail_data%>%
+  select(-Image_URL,-xmin,-xmax,-ymin,-ymax)
+x <- model.matrix(concentration~.,nail_lasso)[,-1]
+y <- nail_lasso$concentration
+train <- sample(1:nrow(x), nrow(x)/2)
+test <- (-train)
+y.test <- y[test]
 ```
 
 ```{r, echo=F}
-#| label: specify-model
-
-nail_spec <- linear_reg() |>
-  set_engine("lm")
-
-# nail_spec
+grid <- 10^seq(10, -2, length = 100) # grid of values for lambda param
+lasso.mod <- glmnet(x[train,], y[train], alpha = 1, lambda = grid)
+plot(lasso.mod)
 ```
 
-```{r, echo=F}
-#| label: create-recipe
-
-nail_rec <- recipe(concentration ~ ., data = nail_train) |>
-  update_role(Image_URL, new_role = "id") |>
-  step_rm(xmin, xmax, ymin, ymax) |>
-  step_dummy(all_nominal_predictors()) |>
-  step_zv(all_predictors())
-
-# nail_rec
-```
-
-```{r, echo=F}
-#| label: create-wflow
-nail_wflow <- workflow() |>
-  add_model(nail_spec) |>
-  add_recipe(nail_rec)
-
-# nail_wflow
-```
-
-## Cross Validation
-
-In order to test how sensitive our estimated coefficients are to the training samples, we conducted a 10-fold cross validation.
-
-```{r, echo=F}
-#| label: cv-tenfold
-
-# make 10 folds
+```{r}
 set.seed(1)
-folds <- vfold_cv(nail_train, v = 10)
-# folds
+cv.out <- cv.glmnet(x[train,], y[train], alpha = 0)
+# Find the best lambda using cross-validation
+plot(cv.out)
+bestlam <- cv.out$lambda.min
+bestlam
+
+lasso.model <- glmnet(x, y, alpha = 1,lambda = bestlam)
+coef(lasso.model)
 ```
 
-```{r, echo=F}
-#| label: conduct-cv
+## Predictions
 
-set.seed(456)
-# Fit model and calculate statistics for each fold
-nail_fit_rs <- nail_wflow |>
-  fit_resamples(resamples = folds, 
-                control = control_resamples(extract = calc_model_stats))
-```
-
-## Summarize assessment CV metrics
-
-```{r, echo=F}
-#| label: cv-summarize
-
-collect_metrics(nail_fit_rs, summarize = FALSE) |> 
-  kable(digits=3)
-# summarize = FALSE to see individualized output; when comparing two models, set summarize = TRUE
-```
-
-## Summarize model fit CV metrics
-
-```{r, echo=F}
-#| label: cv-model-fit
-map_df(nail_fit_rs$.extracts, ~ .x[[1]][[1]]) |> #model stats are in .extracts column 
-  summarise(mean_adj_rsq = mean(adj.r.squared), # avg_stats computed over 10 folds 
-            mean_aic = mean(AIC), 
-            mean_bic = mean(BIC))|> 
-  kable(digits=3)
-```
-
-```{r model, echo=F}
-nail_fit_train <- nail_wflow |>
-      fit(data = nail_train)
-
-tidy(nail_fit_train) |> 
-  kable(digits=3)
-```
-
-```{r test, echo=F}
-nail_train_pred <- predict(nail_fit_train, nail_train) |>
-        bind_cols(nail_train)
-
-rmse_train <- rmse(nail_train_pred, truth = concentration, estimate = .pred)
-   
-nail_test_pred <- predict(nail_fit_train, nail_test) |>
-        bind_cols(nail_test)
-
-rmse_test <- rmse(nail_test_pred, truth = concentration, estimate = .pred)
-   
-model_tibble <- tibble(RMSE_train=rmse_train$.estimate, RMSE_test=rmse_test$.estimate)
-
-model_tibble |>
-        kable()
+```{r}
+lasso.pred <- predict(lasso.mod, s = bestlam, newx = x[test,])
+mean((lasso.pred - y.test)^2)
 ```
 
 ## Discussion of Model Output
@@ -195,7 +130,7 @@ We have derived the following linear model:
 
 We notice that while variables `Mean_L`, `Mean_A`, `Mean_B`, `Mean_Prop_R`, `Mean_Prop_G`, and `Mean_Prop_B` are negatively associated with the response variable `Hgb` concentration, `Mean_H`, `Mean_S` and `Mean_V` are positively associated with the response variable. This means as mean value of hue, or mean value of saturation, or mean value of brightness of HSV color space increases, the hemoglobin concentration level also tends to increase. On the other hand, as the mean value of brightness, redness, greenness or blueness of RGB color space increases, the hemoglobin concentration level tends to decrease.
 
-We found that out of all the predictors, `Mean_S` tends to associates most significantly with the response variable with the smallest p value. For each 1 unit increase in the mean value of saturation, Hgb concentration is expected to increase by 31.719 on average, keeping all else constant. The second most signficant predictor is `Mean_A`, by which we found that for each 1 unit increase in the mean value of representation of greenness to redness, Hgb concentration is expected to decrease by 0.435 on average, keeping all else constant. 
+We found that out of all the predictors, `Mean_S` tends to associates most significantly with the response variable with the smallest p value. For each 1 unit increase in the mean value of saturation, Hgb concentration is expected to increase by 31.719 on average, keeping all else constant. The second most significant predictor is `Mean_A`, by which we found that for each 1 unit increase in the mean value of representation of greenness to redness, Hgb concentration is expected to decrease by 0.435 on average, keeping all else constant.
 
 ## 2.2 Principle Components Analysis (PCA)
 
