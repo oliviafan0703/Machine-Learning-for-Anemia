@@ -38,7 +38,7 @@ We know that each pixel can be represented by RGB values, but the RGB colour spa
 | Mean Value of G          | Average value of greenness of Red-Green-Blue color space                                                                                  |
 | Mean Value of B          | Average value of blueness of Red-Green-Blue color space                                                                                   |
 
-: Since the dataset is private information of the patients enrolled is Dr. Shah' clinic, we would not include the details of the data in this analysis. We provide a glimpse of the data below.
+Since the dataset is private information of the patients enrolled is Dr. Shah' clinic, we would not include the details of the data in this analysis. We provide a glimpse of the data below.
 
 ```{r, warning=F, message=F, echo=F}
 #| label: load-pkgs
@@ -60,14 +60,20 @@ nail_data <- read_csv("nail_data.csv") |>
 glimpse(nail_data)
 ```
 
-```{r EDA, fig.cap='Distribution of response variable'}
+```{r EDA, message=F, echo=F, warning=F, fig.cap='Distribution of response variable'}
 
 ggplot(nail_data, aes(x=concentration)) + 
   geom_histogram(bins=20) + 
   labs(x = 'Concentration of Hemoglobin in g/dL', 
        y = 'Count', 
        title = 'Distribution of hemoglobin concentration')
+
+nail_data |> 
+  select(concentration) |> 
+  summary(concentration) |> 
+  kable(digits=3)
 ```
+Figure 1 and the corresponding summary statistics show that the Hemoglobin concentration in g/dL ranges from 9.20 g/dL to 13.30 g/dL, with a mean of 10.43 g/dL and median of 9.90 g/dL, which better captures the center of the distribution since it is right-skewed. 
 
 ## LASSO Model
 
