@@ -14,7 +14,7 @@ output:
 
 Anemia is as a life-threatening disease that affects 2 billion, or approximately 1 in 3 people world wide [@GTechdissertation]. Patients suffering from chronic anemia require frequent monitoring of indicators such as the Hgb concentration in blood to track the progression of their disease. Despite high prevalence, however, the current diagnostic process requires blood tests which causes discomfort and trauma in patients, in addition to incurring high monetary cost, especially in regions of lower socio-economic development [@monetary]. Therefore, we aim to create machine learning models that enable non-invasive inexpensive diagnosis using patients' nail bed images to predict their Hgb concentration.
 
-Previous work focuses on predicting Hgb concentration on three regressions of interest: the fingernail beds, the conjunctiva and the palmar creases. We aim to extend the previous research from several perspectives: The previous study found no significant correlation between blue pixel intensity and gold standard measured Hgb, which we aim to investigate further using more complex machine learning algorithms such as random forests. The study finds that machine learning techniques such as convoluted neural networks do not improve Hgb level measurement accuracy given the current sample size of the study population; we would like to refine the algorithm and test on a wider range of data as well as techniques such as neural networks and Bayesian regressions. We aim to develop quality control algorithms accounting for other common irregularities in images of fingernails that could lead to inaccurate Hgb level estimation including presence of abnormal fingernail bed pigmentation, abnormal imaging brightness, and lack of image focus, using convolution of fingernail bed images with edge detection kernels to detect edges within the fingernail beds corresponding to abrupt color changes caused by abnormal fingernail bed pigmentation which results in improved prediction accuracy.
+Previous work focuses on predicting Hgb concentration on three regressions of interest: the fingernail beds, the conjunctiva and the palmar creases. We aim to extend the previous research by developing a multilinear LASSO regression model, using features extracted from the nail bed images as predictors. We compared our results with previous work to examine the correlation between the featurs and the hemoglobin concentration levels. 
 
 ## 2. Methodology
 
@@ -103,7 +103,7 @@ lasso.mod <- glmnet(x[train,], y[train], alpha = 1, lambda = grid)
 plot(lasso.mod)
 ```
 
-```{r}
+```{r, echo=F}
 set.seed(1)
 cv.out <- cv.glmnet(x[train,], y[train], alpha = 0)
 # Find the best lambda using cross-validation
@@ -130,7 +130,7 @@ We have derived the following linear model:
 
 We notice that while variables `Mean_L`, `Mean_A`, `Mean_B`, `Mean_Prop_R`, `Mean_Prop_G`, and `Mean_Prop_B` are negatively associated with the response variable `Hgb` concentration, `Mean_H`, `Mean_S` and `Mean_V` are positively associated with the response variable. This means as mean value of hue, or mean value of saturation, or mean value of brightness of HSV color space increases, the hemoglobin concentration level also tends to increase. On the other hand, as the mean value of brightness, redness, greenness or blueness of RGB color space increases, the hemoglobin concentration level tends to decrease.
 
-We found that out of all the predictors, `Mean_S` tends to associates most significantly with the response variable with the smallest p value. For each 1 unit increase in the mean value of saturation, Hgb concentration is expected to increase by 31.719 on average, keeping all else constant. The second most significant predictor is `Mean_A`, by which we found that for each 1 unit increase in the mean value of representation of greenness to redness, Hgb concentration is expected to decrease by 0.435 on average, keeping all else constant.
+We find that out of all the predictors, `Mean_S` tends to associates most significantly with the response variable with the smallest p value. For each 1 unit increase in the mean value of saturation, Hgb concentration is expected to increase by 31.719 on average, keeping all else constant. The second most significant predictor is `Mean_A`, by which we found that for each 1 unit increase in the mean value of representation of greenness to redness, Hgb concentration is expected to decrease by 0.435 on average, keeping all else constant.
 
 ## 2.2 Principle Components Analysis (PCA)
 
