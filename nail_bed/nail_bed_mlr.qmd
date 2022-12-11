@@ -27,7 +27,7 @@ We examine 72 of the images collected from patients enrolled in Dr. Nirmish Shah
 We know that each pixel can be represented by RGB values, but the RGB colour space contains both colour information and the light information, which is different for each image since photos are taken at different times and settings. To eliminate the inconsistency caused by variation in lightning and background, we used two other colour spaces (HSV, LAB) to separate the colour information from the lightning information. We computed the mean of each value/channel across the bounded nail bed image for each of these three colour spaces (HSV, LAB, RGB) and used them as our model input. Our response variable is blood hemoglobin concentration associated with each nail bed in g/dL. Our predictor variables include:
 
 | Variable Name            | Description                                                                                                                               |
-|---------------|---------------------------------------------------------|
+|-----------------|-------------------------------------------------------|
 | Mean value of Hue        | Average value of Hue component (the color component / base pigment) of the Hue-Saturation-Value color space                               |
 | Mean value of Saturation | Average value of Saturation component (amount of color / depth of the pigment / dominance of hue) of the Hue-Saturation-Value color space |
 | Mean value of Value      | Average value of Value component (brightness of the color) of the Hue-Saturation-Value color space                                        |
@@ -73,7 +73,8 @@ nail_data |>
   summary(concentration) |> 
   kable(digits=3)
 ```
-Figure 1 and the corresponding summary statistics show that the Hemoglobin concentration in g/dL ranges from 9.20 g/dL to 13.30 g/dL, with a mean of 10.43 g/dL and median of 9.90 g/dL, which better captures the center of the distribution since it is right-skewed. 
+
+Figure 1 and the corresponding summary statistics show that the Hemoglobin concentration in g/dL ranges from 9.20 g/dL to 13.30 g/dL, with a mean of 10.43 g/dL and median of 9.90 g/dL, which better captures the center of the distribution since it is right-skewed.
 
 ## LASSO Model
 
@@ -127,44 +128,34 @@ We notice that while variables `Mean_L`, `Mean_A`, `Mean_B`, `Mean_Prop_R`, `Mea
 
 We found that out of all the predictors, `Mean_S` tends to associates most significantly with the response variable with the smallest p value. For each 1 unit increase in the mean value of saturation, Hgb concentration is expected to increase by 31.719 on average, keeping all else constant. The second most significant predictor is `Mean_A`, by which we found that for each 1 unit increase in the mean value of representation of greenness to redness, Hgb concentration is expected to decrease by 0.435 on average, keeping all else constant.
 
-## 2.2 Principle Components Analysis (PCA)
+## 3. Conclusion
 
-### Data
+In this study, we explored how multilinear regression can be used to predict hemoglobin concentration level based on features derived from patients' nail beds images. While the LASSO model provides reasonable train and and test error, the p value of the predictors seems to be large.
 
-In the first part of our research, we used the TBND_V2 (Transient Biometrics Nails Dataset) on Kaggle \[1\], which contains unlabeled nail bed images [@kaggle].
+Our second model yields a reasonable explained variance ratio with respect to the scale of principle components. Limitations of our work includes that the data from the clinic lacks the label, therefore we are unable to use classification methods such as random forest or SVM. Our future work includes fitting Bayesian regressions on the data, exploring more machine learning methods such as random forest or support vector machines, and using shrinkage methods such as ridge regression and LASSO.
 
-### Experiment on TBND_V2 Dataset
+In the future, we would like to compare the utility of adding features such as those extracted by a convolutional neural network (CNN). To begin a comparison, we ask: - How much variability is explained by the principal components of CNN feature set? It would be interesting to compare these principal components to the principal components of the features outlined in section 2.1 but will required additional data processing. See appendix for a detailed description of our preliminary exploration.
 
-We initially experimented with the TBND_V2 dataset found on Kaggle, since there is not enough data from the patients. Given that the data is unlabelled, we tried unsupervised clustering methods on the data, hoping to gain some insights on classification of nail bed images.
+## Appendix
 
-To get features, we used VGG16, a convolutional neural network (CNN) in our model. It extracts features from the input images, turning each image into feature vectors (4096 by 1). We removed the final (prediction) layer from the neural network manually, and the new output layer is a fully-connected layer with 4,096 individual nodes. We do this by specifying the "outputs" argument when initialising the model. We therefore get input of our model by using the neural net VGG16 as a feature extractor for the image data.
+Prior to having obtained data used in main analysis, we explored the TBND_V2 (Transient Biometrics Nails Dataset) on Kaggle, which contains unlabeled nail bed images [@kaggle].
 
-We then performed a principal component analysis (PCA) on the feature vectors to reduce the dimension of the feature space. For each of the 93 image samples, we now have a corresponding 1 by 4096 feature vector. This means that our model needs to process a 93 by 4096 matrix. To reduce the computational and complexity cost of processing high-dimensional data, we performed principal component analysis (PCA) on the matrix for dimension reduction. We set the parameter to 50 to obtain the top 50 principal components of the feature vector. The principal components are by default sorted in descending order. This means that the first principal component will be able to explain the most variability in the feature vector. It's a linear combination of the feature variables, and its direction captures the most variability. Thus, PCA helps us to reduce the dimension of the features from 4096 to 50 while preserving as much information in the original data as possible.
+With the unlabelled data, we try unsupervised clustering methods such as Kmeans clustering to gain some insights on classifying nail bed images. We use VGG16, a convolutional neural network (CNN) to exxtract features from the input images, turning each image into a feature vector with 4096 entries. We remove the final (prediction) layer from the neural network manually, and the new output layer is a fully-connected layer with 4,096 individual nodes. We do this by specifying the "outputs" argument when initialising the model. We therefore get input of our model by using the neural net VGG16 as a feature extractor for the image data.
 
-After getting features, we used Kmean clustering, an unsupervised algorithm that is commonly used in exploratory data analysis, to perform the clustering. The Kmean clustering works as follows: Initialise the centre of each k cluster by shuffling the dataset and randomly selecting K data points without replacement. Iterate the following steps until the assignment of data points to clusters is no longer changing: Compute the sum of the Euclidean distance squared between data points and all centres. Assign each data point to the closest cluster; each cluster is represented by its unique centre point. Compute the cluster's centroid by taking the average of all data points assigned to that cluster.
-
-In our model, we set the hyperparameter k to be 5 and clustered all samples into 5 categories. Based on the features we extracted, each cluster will contain images that are visually similar.
+We then perform a principal component analysis (PCA) on the feature vectors to reduce the dimension of the feature space. For each of the 93 image samples, we now have a corresponding 1 by 4096 feature vector. This means that our model needs to process a 93 by 4096 matrix. To reduce the computational and complexity cost of processing high-dimensional data, we perform a principal component analysis (PCA) on the matrix for dimension reduction. We set the parameter to 50 to obtain the top 50 principal components of the feature vector. The principal components are by default sorted in descending order. This means that the first principal component will be able to explain the most variability in the feature vector. It's a linear combination of the feature variables and its direction captures the most variability. Thus, PCA helps us to reduce the dimension of the features from 4096 to 50 while preserving as much information in the original data as possible.
 
 ### PCA Results
 
-Based on the documentation, the explained_variance_ratio\_ function returns the percentage of variability explained by each of the selected components. Running this function gives us the amount of variability that is explained by all the PCs (0.1015 is explained by the first PC, 0.0894 by the second, and 0.0781 by the third etc.)
+Based on the documentation, the explained_variance_ratio\_ function returns the percentage of variability explained by each of the selected components. Running this function gives us the amount of variability that is explained by all the PCs (0.1015 is explained by the first PC, 0.0894 by the second, and 0.0781 by the third etc.) The table below shows the top 10 principal components:
 
-![PCA variance ratios](ratios.png){alt="PCA variance ratios"}
+| PC1     | PC2     | PC3     | PC4     | PC5     | PC6     | PC7     | PC8     | PC9     | PC10    |
+|---------|---------|---------|---------|---------|---------|---------|---------|---------|---------|
+| 0.10152 | 0.08947 | 0.07806 | 0.06449 | 0.05609 | 0.04782 | 0.04122 | 0.03169 | 0.03162 | 0.02549 |
 
-Then we generated a bar chart to represent the variability explained by different principal components, as well as the cumulative step plot to represent the variability explained by the first most important components.
+We report a bar chart to represent the variability explained by different principal components, as well as the cumulative step plot to represent the variability explained by the first most important components.
 
 ![PCA cumulative step plot](PCA.png){alt="PCA cumulative step plot"}
 
 The neural net in the model functions as a feature extractor for the image data, which is the input of our model. To be more specific, we used VGG16, a convolutional neural network (CNN) in our model. It extracts features from the input images, turning each image into feature vectors (4096 by 1). We removed the final (prediction) layer from the neural network manually, and the new output layer is a fully-connected layer with 4,096 individual nodes. We do this by specifying the "outputs" argument when initialising the model.
 
-The PCA reduces dimensions of our feature vectors. For each of the 93 image samples, we now have a corresponding 1 by 4096 feature vector. This means that our model needs to process a 93 by 4096 matrix. To reduce the computational and complexity cost of processing high-dimensional data, we performed principal component analysis (PCA) on the matrix for dimension reduction. We set the parameter to 50 to obtain the top 50 principal components of the feature vector. The principal components are by default sorted in descending order. This means that the first principal component will be able to explain the most variability in the feature vector. It's a linear combination of the feature variables, and its direction captures the most variability. Thus, PCA helps us to reduce the dimension of the features from 4096 to 50 while preserving as much information in the original data as possible.
-
-In our model, we set the hyperparameter k to be 5 and clustered all samples into 5 categories. Based on the features we extracted, each cluster will contain images that are visually similar.
-
-### 3. Conclusion
-
-In this study, we explored primarily two methods in predicting hemoglobin concentration level based on parameters derived from patients' nail beds images: (1) multilinear regression, (2) principle components analysis. While the first model provides reasonable train and and test error, the p value of the predictors seems to be large. Our second model yields a reasonable explained variance ratio with respect to the scale of principle components. Limitations of our work includes that the data from the clinic lacks the label, therefore we are unable to use classification methods such as random forest or SVM. Our future work includes fitting Bayesian regressions on the data, exploring more machine learning methods such as random forest or support vector machines, and using shrinkage methods such as ridge regression and LASSO.
-
-## Appendix
-
-### References
+## References
