@@ -1,7 +1,7 @@
 ---
-title: "Multivariate Linear Regression"
-subtitle: "Nail Bed Images"
-date: "Nov 14, 2022"
+title: "Predicting Hemoglobin Concentration from Nail Bed Images"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+author: "Olivia Fan, Tingnan Hu"
 format: pdf
 editor: visual
 bibliography: references.bib
@@ -12,15 +12,15 @@ output:
 
 ## 1. Introduction
 
-Anemia is as a life-threatening disease that affects 2 billion, or approximately 1 in 3 people world wide [@GTechdissertation]. In 2019, this long lasting disease accounted for 50.3 million YLD (years lived with disabilities) [@monetary]. Patients suffering from chronic anemia require frequent monitoring of indicators such as the Hgb concentration in blood to track the progression of their disease. Despite high prevalence, however, the current diagnostic process requires blood tests which causes discomfort and trauma in patients, in addition to incurring high monetary cost, especially in regions of lower socio-economic development [@monetary]. According to studies in cost-effectiveness of anemia screening, total costs per life saved in targeted screening amounted to \$3575, while treating anemia can cost between \$18 and \$500 per month depending on the type of anemia and necessary treatment [@cost]. Therefore, we aim to create machine learning models that enable non-invasive inexpensive diagnosis using patients' nail bed images to predict their Hgb concentration.
+Anemia is as a life-threatening disease that affects 2 billion, or approximately 1 in 3 people world wide [@GTechdissertation]. In 2019, this long lasting disease accounted for 50.3 million cumulative YLD (years lived with disabilities) [@monetary]. Patients suffering from chronic anemia require frequent monitoring of indicators such as the Hgb concentration in blood to track the progression of their disease. Despite high prevalence, however, the current diagnostic process requires blood tests which causes discomfort and trauma in patients, in addition to incurring high monetary cost, especially in regions of lower socio-economic development [@monetary]. Nosratnejad et al. finds cost-effectiveness of anemia screening, total intervention costs for anemia treatment during a person's lifetime can amount to \$3575, while treating anemia can cost between \$18 and \$500 per month depending on the type of anemia and necessary treatment [@cost]. Therefore, we aim to create machine learning models that enable non-invasive inexpensive diagnosis using patients' nail bed images to predict their Hgb concentration.
 
-Previous work focuses on predicting Hgb concentration on three regressions of interest: the fingernail beds, the conjunctiva and the palmar creases. We aim to extend the previous research by developing a multilinear LASSO regression model, using features extracted from the nail bed images as predictors and cross validation for hyperparameter tuning. We also compared our results with previous work to examine the correlation between the features and the hemoglobin concentration levels.
+Previous work [@GTechdissertation] considers three predictors of interest to predict Hgb concentration: the fingernail beds, the conjunctiva and the palmar creases. In this study, we aim to reevaluate the predictors identified, as well as explore new predictors significant to predicting hemoglobin concentration. We aim to extend the previous research by developing a multilinear LASSO regression model, using features extracted from the nail bed images as predictors and cross validation for hyperparameter tuning. We also compared our results with previous work to examine the correlation between the features and the hemoglobin concentration levels.
 
 ## 2. Methodology: LASSO Multilinear Model
 
 ### Data
 
-We examine 72 of the images collected from patients enrolled in Dr. Nirmish Shah's clinic. Each patient has four images corresponding to different fingers. The images are processed such that the nail bed is captured in a bounding box while the background of the image is discarded. Colour information of each pixel is extracted from the bounded nail bed images as features.
+We examine 72 of the images collected from patients enrolled in Dr. Nirmish Shah's clinic at Duke University Hospital. Each patient has four images corresponding to different fingers. The images are processed such that the nail bed is captured in a bounding box while the background of the image is discarded. Color information of each pixel is extracted from the bounded nail bed images as features.
 
 We know that each pixel can be represented by RGB values, but the RGB colour space contains both colour information and the light information, which is different for each image since photos are taken at different times and settings. To eliminate the inconsistency caused by variation in lightning and background, we used two other colour spaces (HSV, LAB) to separate the colour information from the lightning information. We computed the mean of each value/channel across the bounded nail bed image for each of these three colour spaces (HSV, LAB, RGB) and used them as our model input. Our response variable is blood hemoglobin concentration associated with each nail bed in g/dL. Our predictor variables include:
 
