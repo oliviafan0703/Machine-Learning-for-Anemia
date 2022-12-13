@@ -22,10 +22,10 @@ Previous work focuses on predicting Hgb concentration on three regressions of in
 
 We examine 72 of the images collected from patients enrolled in Dr. Nirmish Shah's clinic. Each patient has four images corresponding to different fingers. The images are processed such that the nail bed is captured in a bounding box while the background of the image is discarded. Colour information of each pixel is extracted from the bounded nail bed images as features.
 
-We know that each pixel can be represented by RGB values, but the RGB colour space contains both colour information and the light information, which is different for each image since photos are taken at different times and settings. To eliminate the inconsistency caused by variation in lightning and background, we used two other colour spaces (HSV, LAB) to separate the colour information from the lightning information. We computed the mean of each value/channel across the bounded nail bed image for each of these three colour spaces (HSV, LAB, RGB) and used them as our model input. Our response variable is blood hemoglobin concentration associated with each nail bed in g/dL. Our predictor variables include:
+We know that each pixel can be represented by RGB values, but the RGB colour space contains both colour information and the light information, which is different for each image since photos are taken at different times and settings. To eliminate the inconsistency caused by variation in lighting and background, we used two other colour spaces (HSV, LAB) to separate the colour information from the lightning information. We computed the mean of each value/channel across the bounded nail bed image for each of these three colour spaces (HSV, LAB, RGB) and used them as our model input. Our response variable is blood hemoglobin concentration associated with each nail bed in g/dL. Our predictor variables include:
 
 | Variable Name            | Description                                                                                                                               |
-|------------------|------------------------------------------------------|
+|--------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
 | Mean value of Hue        | Average value of Hue component (the color component / base pigment) of the Hue-Saturation-Value color space                               |
 | Mean value of Saturation | Average value of Saturation component (amount of color / depth of the pigment / dominance of hue) of the Hue-Saturation-Value color space |
 | Mean value of Value      | Average value of Value component (brightness of the color) of the Hue-Saturation-Value color space                                        |
@@ -35,6 +35,8 @@ We know that each pixel can be represented by RGB values, but the RGB colour spa
 | Mean Value of R          | Average value of redness of Red-Green-Blue color space                                                                                    |
 | Mean Value of G          | Average value of greenness of Red-Green-Blue color space                                                                                  |
 | Mean Value of B          | Average value of blueness of Red-Green-Blue color space                                                                                   |
+
+Table 1: Variable name and descriptions
 
 Since the dataset is private information of the patients enrolled is Dr. Shah' clinic, we would not include the details of the data in this analysis. We provide a glimpse of the data below.
 
@@ -130,7 +132,7 @@ $$\hat Hgb = 15.4670+0.0045 \times Mean\_H+11.6495 \times Mean\_S +0.0124 \times
 
 We notice that while variables `Mean_H`, `Mean_S` and `Mean_L` are positively associated with the response variable `Hgb` concentration, `Mean\_Prop\_G` is negatively associated with the response variable. This means as mean value of hue, mean value of saturation, or mean value of value (brightness of the color) of HSV color space increases, the hemoglobin concentration level also tends to increase. On the other hand, as the mean value of greenness of RGB color space increases, the hemoglobin concentration level tends to decrease.
 
-We find that out of all the predictors, `Mean\_Prop\_G` tends to associates most significantly with the response variable with the coefficient with the largest absolute magnitude. For each 1 unit increase in the mean value of greenness of RGB color space, Hgb concentration is expected to decrease by 30.2895 on average, keeping all else constant. 
+We find that out of all the predictors, `Mean\_Prop\_G` tends to associates most significantly with the response variable with the coefficient with the largest absolute magnitude. For each 1 unit increase in the mean value of greenness of RGB color space, Hgb concentration is expected to decrease by 30.2895 on average, keeping all else constant.
 
 ## 3. Conclusion
 
@@ -151,7 +153,7 @@ We then perform a principal component analysis (PCA) on the feature vectors to r
 Based on the documentation, the explained_variance_ratio\_ function returns the percentage of variability explained by each of the selected components. Running this function gives us the amount of variability that is explained by all the PCs (0.1015 is explained by the first PC, 0.0894 by the second, and 0.0781 by the third etc.) The table below shows the top 10 principal components:
 
 | PC1     | PC2     | PC3     | PC4     | PC5     | PC6     | PC7     | PC8     | PC9     | PC10    |
-|--------|--------|--------|--------|--------|--------|--------|--------|--------|--------|
+|---------|---------|---------|---------|---------|---------|---------|---------|---------|---------|
 | 0.10152 | 0.08947 | 0.07806 | 0.06449 | 0.05609 | 0.04782 | 0.04122 | 0.03169 | 0.03162 | 0.02549 |
 
 We report a bar chart to represent the variability explained by different principal components, as well as the cumulative step plot to represent the variability explained by the first most important components.
