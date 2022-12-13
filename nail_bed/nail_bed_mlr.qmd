@@ -20,12 +20,12 @@ Previous work [@GTechdissertation] considers three predictors of interest to pre
 
 ### Data
 
-We examine 72 of the images collected from patients enrolled in Dr. Nirmish Shah's clinic at Duke University Hospital. Each patient has four images corresponding to different fingers. The images are processed such that the nail bed is captured in a bounding box while the background of the image is discarded. Color information of each pixel is extracted from the bounded nail bed images as features.
+We examine 72 nail bed images collected from patients enrolled in Dr. Nirmish Shah's clinic at Duke University Hospital. Each patient has four images corresponding to different fingers. In collaboration with an ongoing Bass Connections team, we processed the images such that the nail bed is captured in a bounding box while the background of the image is discarded. Color information of each pixel is extracted from the bounded nail bed images as features.
 
-We know that each pixel can be represented by RGB values, but the RGB colour space contains both colour information and the light information, which is different for each image since photos are taken at different times and settings. To eliminate the inconsistency caused by variation in lighting and background, we used two other colour spaces (HSV, LAB) to separate the colour information from the lightning information. We computed the mean of each value/channel across the bounded nail bed image for each of these three colour spaces (HSV, LAB, RGB) and used them as our model input. Our response variable is blood hemoglobin concentration associated with each nail bed in g/dL. Our predictor variables include:
+We know that each pixel can be represented by Red, Green, and Blue (RGB) values, but the RGB color space contains both color and light information, which is different for each image since photos are taken at different times and settings. To eliminate the inconsistency caused by variation in lighting and background, we used two additional color spaces -- Hue, Saturation, Value (HSV) and Lightness, A, B (LAB) -- to separate the color information from the lighting information. We computed the mean of each value/channel across the bounded nail bed image for each of these three color spaces (HSV, LAB, RGB) and used them as our model input. Our response variable is blood hemoglobin concentration associated with each nail bed in g/dL. Our predictor variables include:
 
 | Variable Name            | Description                                                                                                                               |
-|--------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
+|------------------|------------------------------------------------------|
 | Mean value of Hue        | Average value of Hue component (the color component / base pigment) of the Hue-Saturation-Value color space                               |
 | Mean value of Saturation | Average value of Saturation component (amount of color / depth of the pigment / dominance of hue) of the Hue-Saturation-Value color space |
 | Mean value of Value      | Average value of Value component (brightness of the color) of the Hue-Saturation-Value color space                                        |
@@ -38,7 +38,7 @@ We know that each pixel can be represented by RGB values, but the RGB colour spa
 
 Table 1: Variable name and descriptions
 
-Since the dataset is private information of the patients enrolled is Dr. Shah' clinic, we would not include the details of the data in this analysis. We provide a glimpse of the data below.
+Due to confidentiality agreement with Dr. Shah' clinic, we are unable to provide the complete raw image data. We display a glimpse of the pre-processed data below.
 
 ```{r, warning=F, message=F, echo=F}
 #| label: load-pkgs
@@ -73,8 +73,10 @@ ggplot(nail_data, aes(x=concentration)) +
 nail_data |> 
   select(concentration) |> 
   summary(concentration) |> 
-  kable(digits=3)
+  kable(digits=3, col.names = 'Concentration of Hemoglobin in g/dL')
 ```
+
+Table 2: Quantiles of concentration of Hemoglobin (g/dL)
 
 Figure 1 and the corresponding summary statistics show that the Hemoglobin concentration in g/dL ranges from 9.20 g/dL to 13.30 g/dL, with a mean of 10.43 g/dL and median of 9.90 g/dL, which better captures the center of the distribution since it is right-skewed.
 
@@ -136,9 +138,9 @@ We find that out of all the predictors, `Mean\_Prop\_G` tends to associates most
 
 ## 3. Conclusion
 
-In this study, we explored how multilinear regression can be used to predict hemoglobin concentration level based on features derived from patients' nail beds images. The LASSO model selects 4 predictors (mean value of Hue, mean value of Saturation, mean value of Lightness, and mean value of representation for greenness) among the 9 predictors. Previous research have found that representation of blueness in RGB color space is not a significant predictor [@GTechdissertation] for blood hemoglobin levels. This notion is consistent with our result that mean value of representation of blueness is included in the final model. Among the 4 predictors chosen by LASSO model, mean value of Saturation has the strongest positive relationship with the response, and mean value of representation for greenness has a negative relationship with the response. In the future, we would like to explore more on these two predictors.
+In this study, we explored how multilinear regression can be used to predict hemoglobin concentration level based on features derived from patients' nail beds images. The LASSO model selects 4 predictors (mean value of Hue, mean value of Saturation, mean value of Lightness, and mean value of representation for greenness) among the 9 predictors. [@GTechdissertation] finds that representation of blueness in RGB color space is not a significant predictor for blood hemoglobin levels. This notion is consistent with our result that mean value of representation of blueness is not included in the final model. Among the 4 predictors chosen by LASSO model, mean value of Saturation has the strongest positive relationship with the response, and mean value of representation for greenness has a negative relationship with the response. In the future, we would like to explore more on these two predictors.
 
-Limitations of our work includes that the data from the clinic lacks the label, therefore we are unable to use classification methods such as random forest or SVM. Our future work includes fitting Bayesian regressions on the data, exploring more machine learning methods such as random forest or support vector machines, and using other shrinkage methods such as ridge regression. We would also like to compare the utility of adding features such as those extracted by a convolutional neural network (CNN). To begin a comparison, we ask: - How much variability is explained by the principal components of CNN feature set? It would be interesting to compare these principal components to the principal components of the features outlined in section 2.1 but will required additional data processing. See appendix for a detailed description of our preliminary exploration.
+Limitations of our work includes that the data from the clinic lacks labels, so we are unable to use classification methods such as random forest or SVM. Further, we only have 18 (72/4) effectively independent observations for Hg concentration, which might lead to poor model performance. Our future work includes collecting more data, fitting Bayesian regressions on the data, exploring more machine learning methods such as random forest or support vector machines, and using other shrinkage methods such as ridge regression. We would also like to compare the utility of adding features such as those extracted by a convolutional neural network (CNN). To begin a comparison, we ask: - How much variability is explained by the principal components of CNN feature set? It would be interesting to compare these principal components to the principal components of the features outlined in section 2.1 but will required additional data processing. See appendix for a detailed description of our preliminary exploration.
 
 ## Appendix
 
@@ -153,7 +155,7 @@ We then perform a principal component analysis (PCA) on the feature vectors to r
 Based on the documentation, the explained_variance_ratio\_ function returns the percentage of variability explained by each of the selected components. Running this function gives us the amount of variability that is explained by all the PCs (0.1015 is explained by the first PC, 0.0894 by the second, and 0.0781 by the third etc.) The table below shows the top 10 principal components:
 
 | PC1     | PC2     | PC3     | PC4     | PC5     | PC6     | PC7     | PC8     | PC9     | PC10    |
-|---------|---------|---------|---------|---------|---------|---------|---------|---------|---------|
+|--------|--------|--------|--------|--------|--------|--------|--------|--------|--------|
 | 0.10152 | 0.08947 | 0.07806 | 0.06449 | 0.05609 | 0.04782 | 0.04122 | 0.03169 | 0.03162 | 0.02549 |
 
 We report a bar chart to represent the variability explained by different principal components, as well as the cumulative step plot to represent the variability explained by the first most important components.
