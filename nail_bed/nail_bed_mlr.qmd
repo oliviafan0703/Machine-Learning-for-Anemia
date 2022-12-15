@@ -12,9 +12,9 @@ output:
 
 ## 1. Introduction
 
-Anemia is as a life-threatening disease that affects 2 billion, or approximately 1 in 3 people world wide [@GTechdissertation]. In 2019, this long lasting disease accounted for 50.3 million cumulative YLD (years lived with disabilities) [@monetary]. Patients suffering from chronic anemia require frequent monitoring of indicators such as the Hgb concentration in blood to track the progression of their disease. Despite high prevalence, however, the current diagnostic process requires blood tests which causes discomfort and trauma in patients, in addition to incurring high monetary cost, especially in regions of lower socio-economic development [@monetary]. Nosratnejad et al. finds cost-effectiveness of anemia screening, total intervention costs for anemia treatment during a person's lifetime can amount to \$3575, while treating anemia can cost between \$18 and \$500 per month depending on the type of anemia and necessary treatment [@cost]. Therefore, we aim to create machine learning models that enable non-invasive inexpensive diagnosis using patients' nail bed images to predict their Hgb concentration.
+Anemia is as a life-threatening disease that affects 2 billion, or approximately 1 in 3 people world wide [@GTechdissertation]. In 2019, this long lasting disease accounted for 50.3 million cumulative YLD (years lived with disabilities) [@monetary]. Patients suffering from chronic anemia require frequent monitoring of indicators such as the Hgb concentration in blood to track the progression of their disease. Despite high prevalence, however, the current diagnostic process requires blood tests which causes discomfort and trauma in patients, in addition to incurring high monetary cost, especially in regions of lower socio-economic development [@monetary]. Nosratnejad et al. finds cost-effectiveness of anemia screening, total intervention costs for anemia treatment during a person's lifetime can amount to \$3575, while treating anemia can cost between \$18 and \$500 per month depending on the type of anemia and necessary treatment [@cost]. Therefore, we aim to create machine learning models that enable non-invasive inexpensive diagnosis using patients' nail bed images to predict their Hgb concentration [@GTechdissertation]. 
 
-Previous work [@GTechdissertation] considers three predictors of interest to predict Hgb concentration: the fingernail beds, the conjunctiva and the palmar creases. In this study, we aim to reevaluate the predictors identified, as well as explore new predictors significant to predicting hemoglobin concentration. In this study, we investigate machine learning techniques for non-invasive anemia diagnosis by re-evaluating the predictive ability of previously selected predictors and proposing new predictors, via comparing our results with previous work to examine the correlation between the features and the hemoglobin concentration levels. We extend the previous research by developing a multilinear LASSO regression model, using features extracted from the nail bed images as predictors and cross validation for hyperparameter tuning. 
+Previous work [@GTechdissertation] considers three predictors of interest to predict Hgb concentration: the fingernail beds, the conjunctiva and the palmar creases. Mannino decided to use nailbed images and justified this choice of appropriate body part by arguing that nailbeds exhibit paleness when an individual is anemia, and are relatively easy to image. Jonas and SusannaJr (2015) have found that the degree of paleness in fingernail beds is a reliable indicator of iron deficiency, because the skin beneath fingernail beds lacks pigmentation in itself and relies on the oxygen-carrying hemoglobin as the source for their color [@nail]. In this study, we aim to reevaluate the predictors identified, as well as explore new predictors significant to predicting hemoglobin concentration. In this study, we investigate machine learning techniques for non-invasive anemia diagnosis by re-evaluating the predictive ability of previously selected predictors and proposing new predictors, via comparing our results with previous work to examine the correlation between the features and the hemoglobin concentration levels. We extend the previous research by developing a multilinear LASSO regression model, using features extracted from the nail bed images as predictors and cross validation for hyperparameter tuning. 
 
 ## 2. Methodology: LASSO Multilinear Model
 
@@ -63,14 +63,7 @@ glimpse(nail_data)
 
 ### Exploratory Data Analysis
 
-```{r EDA, message=F, echo=F, warning=F, fig.cap='Distribution of response variable'}
-
-ggplot(nail_data, aes(x=concentration)) + 
-  geom_histogram(bins=20) + 
-  labs(x = 'Concentration of Hemoglobin in g/dL', 
-       y = 'Count', 
-       title = 'Distribution of hemoglobin concentration')
-
+```{r. message=F, warning=F}
 nail_data |> 
   select(concentration) |> 
   summary(concentration) |> 
@@ -78,6 +71,15 @@ nail_data |>
 ```
 
 Table 2: Quantiles of concentration of Hemoglobin (g/dL)
+
+```{r EDA, message=F, echo=F, warning=F, fig.cap='Distribution of response variable'}
+
+ggplot(nail_data, aes(x=concentration)) + 
+  geom_histogram(bins=20) + 
+  labs(x = 'Concentration of Hemoglobin in g/dL', 
+       y = 'Count', 
+       title = 'Distribution of hemoglobin concentration')
+```
 
 Figure 1 and the corresponding summary statistics show that the Hemoglobin concentration in g/dL ranges from 9.20 g/dL to 13.30 g/dL, with a mean of 10.43 g/dL and median of 9.90 g/dL, which better captures the center of the distribution since it is right-skewed.
 
@@ -134,9 +136,8 @@ mean((lasso.pred - y.test)^2)
 We chose a training vs. test model because we aim our model to perform well not just by fitting closely to the training data, but to perform well on future data in terms of predictions as well. Therefore, we used a 70%-30% split to partition 70% of the original data into the training set and the 30% of the original data into the test set. Performing predictions on the test data set, we derive a test MSE (mean squared error) of 14.019.
 
 ```{r, echo=F, warning=F,fig.cap='Actual vs. Predicted Concentration in LASSO Model'}
-y.test
-lasso.pred
 df<-as.data.frame(cbind(lasso.pred,y.test))
+df$index <- seq(1,36,1)
 require(ggplot2)
 
 colors <- c("y_actual" = "red", "y_predicted" = "blue")
