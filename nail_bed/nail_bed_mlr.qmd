@@ -14,7 +14,7 @@ output:
 
 Anemia is as a life-threatening disease that affects 2 billion, or approximately 1 in 3 people world wide [@GTechdissertation]. In 2019, this long lasting disease accounted for 50.3 million cumulative YLD (years lived with disabilities) [@monetary]. Patients suffering from chronic anemia require frequent monitoring of indicators such as the Hgb concentration in blood to track the progression of their disease. Despite high prevalence, however, the current diagnostic process requires blood tests which causes discomfort and trauma in patients, in addition to incurring high monetary cost, especially in regions of lower socio-economic development [@monetary]. Nosratnejad et al. finds cost-effectiveness of anemia screening, total intervention costs for anemia treatment during a person's lifetime can amount to \$3575, while treating anemia can cost between \$18 and \$500 per month depending on the type of anemia and necessary treatment [@cost]. Therefore, we aim to create machine learning models that enable non-invasive inexpensive diagnosis using patients' nail bed images to predict their Hgb concentration.
 
-Previous work [@GTechdissertation] considers three predictors of interest to predict Hgb concentration: the fingernail beds, the conjunctiva and the palmar creases. In this study, we aim to reevaluate the predictors identified, as well as explore new predictors significant to predicting hemoglobin concentration. We aim to extend the previous research by developing a multilinear LASSO regression model, using features extracted from the nail bed images as predictors and cross validation for hyperparameter tuning. We also compared our results with previous work to examine the correlation between the features and the hemoglobin concentration levels.
+Previous work [@GTechdissertation] considers three predictors of interest to predict Hgb concentration: the fingernail beds, the conjunctiva and the palmar creases. In this study, we aim to reevaluate the predictors identified, as well as explore new predictors significant to predicting hemoglobin concentration. In this study, we investigate machine learning techniques for non-invasive anemia diagnosis by re-evaluating the predictive ability of previously selected predictors and proposing new predictors, via comparing our results with previous work to examine the correlation between the features and the hemoglobin concentration levels. We extend the previous research by developing a multilinear LASSO regression model, using features extracted from the nail bed images as predictors and cross validation for hyperparameter tuning. 
 
 ## 2. Methodology: LASSO Multilinear Model
 
@@ -77,21 +77,19 @@ nail_data |>
   kable(digits=3, col.names = 'Concentration of Hemoglobin in g/dL')
 ```
 
-<<<<<<< HEAD
-Figure 1 and the corresponding summary statistics show that the Hemoglobin concentration in g/dL ranges from 9.20 g/dL to 13.30 g/dL, with a mean of 10.43 g/dL and median of 9.90 g/dL, which better captures the center of the distribution since it is right-skewed. 
-=======
 Table 2: Quantiles of concentration of Hemoglobin (g/dL)
 
 Figure 1 and the corresponding summary statistics show that the Hemoglobin concentration in g/dL ranges from 9.20 g/dL to 13.30 g/dL, with a mean of 10.43 g/dL and median of 9.90 g/dL, which better captures the center of the distribution since it is right-skewed.
->>>>>>> 2e59f2000d5dea0e9a89297f5762787b2f08fa92
 
 ### Cross Validation for Hyperparameter Tuning
 
 In order to perform variable selection to gauge insight into the predictors which have significantly associations with hemoglobin concentrations, we use the LASSO which uses $L_1$ norm penalty, shrinking the coefficient estimates of insignificant predictors towards zero by minimizing $\{\Sigma(y_i-\hat y_i)^2 +\lambda \Sigma_i |\beta_i|\}$ [@lasso]. For this reason, we standardize the data prior to finding LASSO estimates. We chose the LASSO model over the best subset selection model because the LASSO model is more robust and less sensitive to changes in the dataset, and over ridge regressions because we would like to filter out predictors by setting $\beta_i$ to exactly zero through variable selection [@lasso].
 
+The LASSO minimizes $\{\Sigma(y_i-\hat y_i)^2 +\lambda \Sigma_i |\beta_i|\}$, the residual sum of squares plus a shrinkage penalty of lambda multiplied by the sum of absolute values of the coefficients in which $\lambda$ is a hyperparameter that we tune via cross validation.
+
 $$y=\Sigma x_i \beta_i+\beta_0+\lambda \Sigma |\beta_i|$$
 
-We use cross validation to tune the hyperparamter $\lambda$ and visualize the shrinkage of the coefficients:
+We use cross validation to tune the hyperparamter $\lambda$ and visualize the shrinkage of the coefficients.
 
 ```{r, echo=F, warning = F}
 set.seed(123)
@@ -104,7 +102,7 @@ test <- (-train)
 y.test <- y[test]
 grid <- 10^seq(10, -2, length = 100) # grid of values for lambda param
 lasso.mod <- glmnet(x[train,], y[train], alpha = 1, lambda = grid)
-plot(lasso.mod)
+# plot(lasso.mod)
 ```
 
 We observe that the best $\lambda$ which results in the smallest MSE is 0.0584
@@ -122,6 +120,8 @@ df<-as.data.frame(as.matrix(coef(lasso.model)))
 df%>%filter(s0!=0)%>%rename("coefficient"=s0)%>%kable(digits=4)
 ```
 
+Table 3: Coefficients of Predictors in LASSO Model
+
 As a result, we derive a sparse model which only involves a subset of the features extracted from the nailbed images.
 
 ## Predictions
@@ -131,7 +131,11 @@ lasso.pred <- predict(lasso.mod, s = bestlam, newx = x[test,])
 mean((lasso.pred - y.test)^2)
 ```
 
-Performing predictions on the test data set, we derive a test MSE of 14.019.
+```{r}
+lasso.model
+```
+
+We chose a training vs. test model because we aim our model to perform well not just by fitting closely to the training data, but to perform well on future data in terms of predictions as well. Therefore, we used a 70%-30% split to partition 70% of the original data into the training set and the 30% of the original data into the test set. Performing predictions on the test data set, we derive a test MSE (mean squared error) of 14.019.
 
 ## Discussion of Model Output
 
@@ -139,7 +143,7 @@ We have derived the following linear model:
 
 $$\hat Hgb = 15.4670+0.0045 \times Mean\_H+11.6495 \times Mean\_S +0.0124 \times Mean\_L-30.2895 \times Mean\_Prop\_G$$
 
-We notice that while variables `Mean_H`, `Mean_S` and `Mean_L` are positively associated with the response variable `Hgb` concentration, `Mean\_Prop\_G` is negatively associated with the response variable. This means as mean value of hue, mean value of saturation, or mean value of value (brightness of the color) of HSV color space increases, the hemoglobin concentration level also tends to increase. On the other hand, as the mean value of greenness of RGB color space increases, the hemoglobin concentration level tends to decrease.
+We notice that while variables mean value of hue, mean value of saturation, and mean value of lightness are positively associated with the response variable `Hgb` concentration, Average value of greenness of Red-Green-Blue color space is negatively associated with the response variable. This means as mean value of hue, mean value of saturation, or mean value of lightness increases, the hemoglobin concentration level also tends to increase. On the other hand, as the mean value of greenness of Red-Green-Blue color space increases, the hemoglobin concentration level tends to decrease.
 
 We find that out of all the predictors, `Mean\_Prop\_G` tends to associates most significantly with the response variable with the coefficient with the largest absolute magnitude. For each 1 unit increase in the mean value of greenness of RGB color space, Hgb concentration is expected to decrease by 30.2895 on average, keeping all else constant.
 
@@ -165,9 +169,11 @@ Based on the documentation, the explained_variance_ratio\_ function returns the 
 |--------|--------|--------|--------|--------|--------|--------|--------|--------|--------|
 | 0.10152 | 0.08947 | 0.07806 | 0.06449 | 0.05609 | 0.04782 | 0.04122 | 0.03169 | 0.03162 | 0.02549 |
 
+Table 4: Top 10 Principle Components in PCA
+
 We report a bar chart to represent the variability explained by different principal components, as well as the cumulative step plot to represent the variability explained by the first most important components.
 
-![PCA cumulative step plot](PCA.png){alt="PCA cumulative step plot"}
+![PCA cumulative step plot (50 Principle Conponents from CNN)](PCA.png){alt="PCA cumulative step plot (10 Principle Conponents from CNN)"}
 
 The neural net in the model functions as a feature extractor for the image data, which is the input of our model. To be more specific, we used VGG16, a convolutional neural network (CNN) in our model. It extracts features from the input images, turning each image into feature vectors (4096 by 1). We removed the final (prediction) layer from the neural network manually, and the new output layer is a fully-connected layer with 4,096 individual nodes. We do this by specifying the "outputs" argument when initialising the model.
 
