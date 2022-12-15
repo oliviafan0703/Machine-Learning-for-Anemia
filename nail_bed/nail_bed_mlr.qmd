@@ -131,11 +131,31 @@ lasso.pred <- predict(lasso.mod, s = bestlam, newx = x[test,])
 mean((lasso.pred - y.test)^2)
 ```
 
-```{r}
-lasso.model
+We chose a training vs. test model because we aim our model to perform well not just by fitting closely to the training data, but to perform well on future data in terms of predictions as well. Therefore, we used a 70%-30% split to partition 70% of the original data into the training set and the 30% of the original data into the test set. Performing predictions on the test data set, we derive a test MSE (mean squared error) of 14.019.
+
+```{r, echo=F, warning=F,fig.cap='Actual vs. Predicted Concentration in LASSO Model'}
+y.test
+lasso.pred
+df<-as.data.frame(cbind(lasso.pred,y.test))
+require(ggplot2)
+
+colors <- c("y_actual" = "red", "y_predicted" = "blue")
+# ggplot(df, aes(index)) +
+#   labs(title="Actual vs. Predicted Concentration in LASSO Model")+
+#   geom_point(aes(y=y.test), colour="red", ylab="Value") +  # first layer
+#   geom_point(aes(y=lasso.pred), colour="blue")+
+#   scale_color_manual(values = colors)
+
+ggplot(df, aes(x = index)) +
+    geom_point(aes(y = y.test, color = "y_actual"), size = 1.5) +
+    geom_point(aes(y = lasso.pred, color = "y_predicted"), size = 1.5) +
+    labs(x = "Index",
+         y = "Value",
+         color = "Legend") +
+    scale_color_manual(values = colors)
 ```
 
-We chose a training vs. test model because we aim our model to perform well not just by fitting closely to the training data, but to perform well on future data in terms of predictions as well. Therefore, we used a 70%-30% split to partition 70% of the original data into the training set and the 30% of the original data into the test set. Performing predictions on the test data set, we derive a test MSE (mean squared error) of 14.019.
+Here we visualize the actual hemoglobin concentration levels $y$ from the test set versus the predicted values $\hat y$ according to our LASSO model to visualize MSE for our best fitting. 
 
 ## Discussion of Model Output
 
