@@ -24,6 +24,7 @@ We examine 72 of the images collected from patients enrolled in Dr. Nirmish Shah
 
 We know that each pixel can be represented by RGB values, but the RGB colour space contains both colour information and the light information, which is different for each image since photos are taken at different times and settings. To eliminate the inconsistency caused by variation in lightning and background, we used two other colour spaces (HSV, LAB) to separate the colour information from the lightning information. We computed the mean of each value/channel across the bounded nail bed image for each of these three colour spaces (HSV, LAB, RGB) and used them as our model input. Our response variable is blood hemoglobin concentration associated with each nail bed in g/dL. Our predictor variables include:
 
+
 | Variable Name            | Description                                                                                                                               |
 |------------------|------------------------------------------------------|
 | Mean value of Hue        | Average value of Hue component (the color component / base pigment) of the Hue-Saturation-Value color space                               |
@@ -74,15 +75,17 @@ nail_data |>
   kable(digits=3)
 ```
 
-Figure 1 and the corresponding summary statistics show that the Hemoglobin concentration in g/dL ranges from 9.20 g/dL to 13.30 g/dL, with a mean of 10.43 g/dL and median of 9.90 g/dL, which better captures the center of the distribution since it is right-skewed.
+Figure 1 and the corresponding summary statistics show that the Hemoglobin concentration in g/dL ranges from 9.20 g/dL to 13.30 g/dL, with a mean of 10.43 g/dL and median of 9.90 g/dL, which better captures the center of the distribution since it is right-skewed. 
 
 ### Cross Validation for Hyperparameter Tuning
 
-In order to perform variable selection to gauge insight into the predictors which have significantly associations with hemoglobin concentrations, we use the LASSO which uses $L_1$ norm penalty, shrinking the coefficient estimates of insignificant predictors towards zero.
+In order to perform variable selection to gauge insight into the predictors which have significantly associations with hemoglobin concentrations, we use the LASSO which uses $L_1$ norm penalty, shrinking the coefficient estimates of insignificant predictors towards zero by minimizing $\{\Sigma(y_i-\hat y_i)^2 +\lambda \Sigma_i |\beta_i|\}$ [@lasso]. For this reason, we standardize the data prior to finding LASSO estimates. We chose the LASSO model over the best subset selection model because the LASSO model is more robust and less sensitive to changes in the dataset, and over ridge regressions because we would like to filter out predictors by setting $\beta_i$ to exactly zero through variable selection [@lasso].
+
+$$y=\Sigma x_i \beta_i+\beta_0+\lambda \Sigma |\beta_i|$$
 
 We use cross validation to tune the hyperparamter $\lambda$ and visualize the shrinkage of the coefficients:
 
-```{r, echo=F}
+```{r, echo=F, warning = F}
 set.seed(123)
 nail_lasso<-nail_data%>%
   select(-Image_URL,-xmin,-xmax,-ymin,-ymax)
@@ -102,7 +105,7 @@ We observe that the best $\lambda$ which results in the smallest MSE is 0.0584
 set.seed(1)
 cv.out <- cv.glmnet(x[train,], y[train], alpha = 0)
 # Find the best lambda using cross-validation
-plot(cv.out)
+# plot(cv.out)
 bestlam <- cv.out$lambda.min
 bestlam
 
