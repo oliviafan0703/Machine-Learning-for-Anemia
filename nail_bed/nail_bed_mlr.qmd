@@ -166,7 +166,7 @@ $$\hat Hgb = 15.4670+0.0045 \times Mean\_H+11.6495 \times Mean\_S +0.0124 \times
 
 We notice that while variables mean value of hue, mean value of saturation, and mean value of lightness are positively associated with the response variable `Hgb` concentration, Average value of greenness of Red-Green-Blue color space is negatively associated with the response variable. This means as mean value of hue, mean value of saturation, or mean value of lightness increases, the hemoglobin concentration level also tends to increase. On the other hand, as the mean value of greenness of Red-Green-Blue color space increases, the hemoglobin concentration level tends to decrease.
 
-We find that out of all the predictors, `Mean\_Prop\_G` tends to associates most significantly with the response variable with the coefficient with the largest absolute magnitude. For each 1 unit increase in the mean value of greenness of RGB color space, Hgb concentration is expected to decrease by 30.2895 on average, keeping all else constant.
+We find that out of all the predictors, mean value of greenness of Red-Green-Blue color space tends to associates most significantly with the response variable with the coefficient with the largest absolute magnitude. For each 1 unit increase in the mean value of greenness of RGB color space, Hgb concentration is expected to decrease by 30.2895 on average, keeping all else constant.
 
 ## 3. Conclusion
 
